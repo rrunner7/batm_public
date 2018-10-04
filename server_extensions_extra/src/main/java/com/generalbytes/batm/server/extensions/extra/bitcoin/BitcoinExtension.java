@@ -19,19 +19,29 @@ package com.generalbytes.batm.server.extensions.extra.bitcoin;
 
 import com.generalbytes.batm.server.extensions.*;
 import com.generalbytes.batm.server.extensions.extra.bitcoin.exchanges.bitfinex.BitfinexExchange;
+import com.generalbytes.batm.server.extensions.extra.bitcoin.exchanges.bittrex.BittrexExchange;
+import com.generalbytes.batm.server.extensions.extra.bitcoin.exchanges.hitbtc.HitbtcExchange;
 import com.generalbytes.batm.server.extensions.extra.bitcoin.exchanges.itbit.ItBitExchange;
 import com.generalbytes.batm.server.extensions.extra.bitcoin.paymentprocessors.bitcoinpay.BitcoinPayPP;
 import com.generalbytes.batm.server.extensions.extra.bitcoin.paymentprocessors.coinofsale.CoinOfSalePP;
-import com.generalbytes.batm.server.extensions.extra.bitcoin.sources.BitcoinAverageRateSource;
 import com.generalbytes.batm.server.extensions.extra.bitcoin.sources.FixPriceRateSource;
+import com.generalbytes.batm.server.extensions.extra.bitcoin.sources.bity.BityRateSource;
+import com.generalbytes.batm.server.extensions.extra.bitcoin.sources.mrcoin.MrCoinRateSource;
 import com.generalbytes.batm.server.extensions.extra.bitcoin.wallets.bitcoind.BATMBitcoindRPCWallet;
 import com.generalbytes.batm.server.extensions.extra.bitcoin.wallets.bitcore.BitcoreWallet;
+import com.generalbytes.batm.server.extensions.extra.bitcoin.wallets.bitgo.v2.BitgoWallet;
 import com.generalbytes.batm.server.extensions.watchlist.IWatchList;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 public class BitcoinExtension implements IExtension{
+    private IExtensionContext ctx;
+
+    @Override
+    public void init(IExtensionContext ctx) {
+        this.ctx = ctx;
+    }
 
     @Override
     public String getName() {
@@ -49,16 +59,25 @@ public class BitcoinExtension implements IExtension{
                 String apiKey = paramTokenizer.nextToken();
                 String apiSecret = paramTokenizer.nextToken();
                 return new BitfinexExchange(apiKey, apiSecret);
-            } else if ("itbit".equalsIgnoreCase(prefix)) {
-                String preferredFiatCurrency = ICurrencies.USD;
+            }else if ("bittrex".equalsIgnoreCase(prefix)) {
+                String apiKey = paramTokenizer.nextToken();
+                String apiSecret = paramTokenizer.nextToken();
+                return new BittrexExchange(apiKey, apiSecret);
+            }else if ("itbit".equalsIgnoreCase(prefix)) {
+                String preferredFiatCurrency = Currencies.USD;
                 String userId = paramTokenizer.nextToken();
-                String walletId = paramTokenizer.nextToken();
+                String accountId = paramTokenizer.nextToken();
                 String clientKey = paramTokenizer.nextToken();
                 String clientSecret = paramTokenizer.nextToken();
                 if (paramTokenizer.hasMoreTokens()) {
-                    preferredFiatCurrency = paramTokenizer.nextToken();
+                    preferredFiatCurrency = paramTokenizer.nextToken().toUpperCase();
                 }
-                return new ItBitExchange(userId, walletId, clientKey, clientSecret, preferredFiatCurrency);
+                return new ItBitExchange(userId, accountId, clientKey, clientSecret, preferredFiatCurrency);
+            }else if("hitbtc".equalsIgnoreCase(prefix)) {
+                String preferredFiatCurrency = Currencies.USD;
+                String apiKey = paramTokenizer.nextToken();
+                String apiSecret = paramTokenizer.nextToken();
+                return new HitbtcExchange(apiKey, apiSecret,preferredFiatCurrency);
             }
         }
         return null;
@@ -96,15 +115,15 @@ public class BitcoinExtension implements IExtension{
                 String password = st.nextToken();
                 String hostname = st.nextToken();
                 String port = st.nextToken();
-                String accountName ="";
+                String accountName = "";
                 if (st.hasMoreTokens()) {
                     accountName = st.nextToken();
                 }
 
 
-                if (protocol != null && username != null && password != null && hostname !=null && port != null && accountName != null) {
-                    String rpcURL = protocol +"://" + username +":" + password + "@" + hostname +":" + port;
-                    return new BATMBitcoindRPCWallet(rpcURL,accountName);
+                if (protocol != null && username != null && password != null && hostname != null && port != null && accountName != null) {
+                    String rpcURL = protocol + "://" + username + ":" + password + "@" + hostname + ":" + port;
+                    return new BATMBitcoindRPCWallet(rpcURL, accountName, Currencies.BTC);
                 }
             }else if ("bitcore".equalsIgnoreCase(walletType)) { //bitcore:apiKey:proxyUrl
                 String apiKey = st.nextToken();
@@ -112,6 +131,32 @@ public class BitcoinExtension implements IExtension{
                 // instead use \n and then remove the leading :
                 String proxyUrl = st.nextToken("\n").replaceFirst(":", "");
                 return new BitcoreWallet(apiKey, proxyUrl);
+            }else if ("bitgo".equalsIgnoreCase(walletType)) { //bitgo:host:port:token:wallet_address:wallet_passphrase
+                String first = st.nextToken();
+                String protocol = "";
+                String host = "";
+                String fullHost = "";
+                if(first != null && first.startsWith("http")) {
+                    protocol = first ;
+                    host = st.nextToken();
+                    fullHost = protocol + ":" + host;
+                } else {
+                    host = first;
+                    fullHost = host;
+                }
+
+                String port = "";
+                String token = "";
+                String next = st.nextToken();
+                if(next != null && next.length() > 6) {
+                    token = next;
+                } else {
+                    port = next;
+                    token = st.nextToken();
+                }
+                String walletAddress = st.nextToken();
+                String walletPassphrase = st.nextToken();
+                return new BitgoWallet(fullHost, port, token, walletAddress, walletPassphrase);
             }
         }
         return null;
@@ -132,16 +177,11 @@ public class BitcoinExtension implements IExtension{
         //NOTE: (Bitstamp is in built-in extension)
         if (sourceLogin != null && !sourceLogin.trim().isEmpty()) {
             StringTokenizer st = new StringTokenizer(sourceLogin,":");
-            String exchangeType = st.nextToken();
+            String rsType = st.nextToken();
 
-            if ("bitcoinaverage".equalsIgnoreCase(exchangeType)) {
-                if (st.hasMoreTokens()) {
-                    return new BitcoinAverageRateSource(st.nextToken());
-                }
-                return new BitcoinAverageRateSource(ICurrencies.USD);
-            }else if ("btcfix".equalsIgnoreCase(exchangeType)) {
+            if ("btcfix".equalsIgnoreCase(rsType)) {
                 BigDecimal rate = BigDecimal.ZERO;
-                String preferredFiatCurrency = ICurrencies.USD;
+                String preferredFiatCurrency = Currencies.USD;
                 if (st.hasMoreTokens()) {
                     try {
                         rate = new BigDecimal(st.nextToken());
@@ -149,15 +189,21 @@ public class BitcoinExtension implements IExtension{
                     }
                 }
                 if (st.hasMoreTokens()) {
-                    preferredFiatCurrency = st.nextToken();
+                    preferredFiatCurrency = st.nextToken().toUpperCase();
                 }
                 return new FixPriceRateSource(rate,preferredFiatCurrency);
-            }else if ("bitfinex".equalsIgnoreCase(exchangeType)) {
+            }else if ("bitfinex".equalsIgnoreCase(rsType)) {
                return new BitfinexExchange("**","**");
-            }else if ("itbit".equalsIgnoreCase(exchangeType)) {
-                String preferredFiatCurrency = ICurrencies.USD;
+            }else if ("bittrex".equalsIgnoreCase(rsType)) {
+                return new BittrexExchange("**","**");
+            }else if ("bity".equalsIgnoreCase(rsType)) {
+               return new BityRateSource();
+            }else if ("mrcoin".equalsIgnoreCase(rsType)) {
+                return new MrCoinRateSource();
+            }else if ("itbit".equalsIgnoreCase(rsType)) {
+                String preferredFiatCurrency = Currencies.USD;
                 if (st.hasMoreTokens()) {
-                    preferredFiatCurrency = st.nextToken();
+                    preferredFiatCurrency = st.nextToken().toUpperCase();
                 }
                 return new ItBitExchange(preferredFiatCurrency);
             }
@@ -168,9 +214,10 @@ public class BitcoinExtension implements IExtension{
     @Override
     public Set<String> getSupportedCryptoCurrencies() {
         Set<String> result = new HashSet<String>();
-        result.add(ICurrencies.BTC);
-        result.add(ICurrencies.ETH);
-        result.add(ICurrencies.LTC);
+        result.add(Currencies.BTC);
+        result.add(Currencies.ETH);
+        result.add(Currencies.LTC);
+        result.add(Currencies.BCH);
         return result;
     }
 
@@ -181,6 +228,11 @@ public class BitcoinExtension implements IExtension{
 
     @Override
     public IWatchList getWatchList(String name) {
+        return null;
+    }
+
+    @Override
+    public Set<ICryptoCurrencyDefinition> getCryptoCurrencyDefinitions() {
         return null;
     }
 }

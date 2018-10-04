@@ -20,21 +20,27 @@
  ************************************************************************************/
 package com.generalbytes.batm.server.extensions.extra.bitcoin.exchanges.itbit;
 
-import com.generalbytes.batm.server.extensions.ICurrencies;
+import com.generalbytes.batm.server.extensions.Currencies;
+import com.generalbytes.batm.server.extensions.Currencies;
 import com.generalbytes.batm.server.extensions.extra.bitcoin.exchanges.XChangeExchange;
 import org.knowm.xchange.ExchangeSpecification;
+import org.knowm.xchange.dto.account.AccountInfo;
+import org.knowm.xchange.dto.account.Wallet;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class ItBitExchange extends XChangeExchange {
 
+    private String accountId;
+
     public ItBitExchange(String preferredFiatCurrency) {
         super(getDefaultSpecification(), preferredFiatCurrency);
     }
 
-    public ItBitExchange(String userId, String walletId, String clientKey, String clientSecret, String preferredFiatCurrency) {
-        super(getSpecification(userId, walletId, clientKey, clientSecret), preferredFiatCurrency);
+    public ItBitExchange(String userId, String accountId, String clientKey, String clientSecret, String preferredFiatCurrency) {
+        super(getSpecification(userId, accountId, clientKey, clientSecret), preferredFiatCurrency);
+        this.accountId = accountId;
     }
 
 
@@ -42,10 +48,10 @@ public class ItBitExchange extends XChangeExchange {
         return new org.knowm.xchange.itbit.v1.ItBitExchange().getDefaultExchangeSpecification();
     }
 
-    private static ExchangeSpecification getSpecification(String userId, String walletId, String clientKey, String clientSecret) {
+    private static ExchangeSpecification getSpecification(String userId, String accountId, String clientKey, String clientSecret) {
         ExchangeSpecification spec = getDefaultSpecification();
         spec.setExchangeSpecificParametersItem("userId", userId);
-        spec.setExchangeSpecificParametersItem("walletId", walletId);
+        spec.setExchangeSpecificParametersItem("walletId", accountId);
         spec.setApiKey(clientKey);
         spec.setSecretKey(clientSecret);
         return spec;
@@ -53,17 +59,17 @@ public class ItBitExchange extends XChangeExchange {
 
     @Override
     public Set<String> getCryptoCurrencies() {
-        Set<String> cryptoCurrencies = new HashSet<String>();
-        cryptoCurrencies.add(ICurrencies.BTC);
+        Set<String> cryptoCurrencies = new HashSet<>();
+        cryptoCurrencies.add(Currencies.BTC);
         return cryptoCurrencies;
     }
 
     @Override
     public Set<String> getFiatCurrencies() {
-        Set<String> fiatCurrencies = new HashSet<String>();
-        fiatCurrencies.add(ICurrencies.USD);
-        fiatCurrencies.add(ICurrencies.EUR);
-        fiatCurrencies.add(ICurrencies.SGD);
+        Set<String> fiatCurrencies = new HashSet<>();
+        fiatCurrencies.add(Currencies.USD);
+        fiatCurrencies.add(Currencies.EUR);
+        fiatCurrencies.add(Currencies.SGD);
         return fiatCurrencies;
     }
 
@@ -78,8 +84,13 @@ public class ItBitExchange extends XChangeExchange {
     }
 
     @Override
+    public Wallet getWallet(AccountInfo accountInfo, String fiatCurrency) {
+        return accountInfo.getWallet(accountId);
+    }
+
+    @Override
     protected String translateCryptoCurrencySymbolToExchangeSpecificSymbol(String from) {
-        if (ICurrencies.BTC.equalsIgnoreCase(from)) {
+        if (Currencies.BTC.equalsIgnoreCase(from)) {
             return "XBT";
         }
         return from;

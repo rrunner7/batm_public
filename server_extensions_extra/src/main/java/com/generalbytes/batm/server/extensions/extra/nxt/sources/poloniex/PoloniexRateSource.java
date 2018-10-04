@@ -17,9 +17,10 @@
  ************************************************************************************/
 package com.generalbytes.batm.server.extensions.extra.nxt.sources.poloniex;
 
-import com.generalbytes.batm.server.extensions.ICurrencies;
+import com.generalbytes.batm.server.extensions.Currencies;
+import com.generalbytes.batm.server.extensions.Currencies;
 import com.generalbytes.batm.server.extensions.IRateSource;
-import com.generalbytes.batm.server.extensions.extra.bitcoin.sources.BitcoinAverageRateSource;
+import com.generalbytes.batm.server.extensions.extra.bitcoin.exchanges.bitfinex.BitfinexExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import si.mazi.rescu.RestProxyFactory;
@@ -32,7 +33,7 @@ import java.util.Set;
 public class PoloniexRateSource implements IRateSource{
     private static final Logger log = LoggerFactory.getLogger(PoloniexRateSource.class);
 
-    private BitcoinAverageRateSource btcRs;
+    private BitfinexExchange btcRs;
     private String preferedFiatCurrency;
     private IPoloniexAPI api;
 
@@ -42,10 +43,10 @@ public class PoloniexRateSource implements IRateSource{
 
     public PoloniexRateSource(String preferedFiatCurrency) {
         if (preferedFiatCurrency == null) {
-            preferedFiatCurrency = ICurrencies.USD;
+            preferedFiatCurrency = Currencies.USD;
         }
         this.preferedFiatCurrency = preferedFiatCurrency;
-        btcRs = new BitcoinAverageRateSource(preferedFiatCurrency);
+        btcRs = new BitfinexExchange("***","***");
         api = RestProxyFactory.createProxy(IPoloniexAPI.class, "https://poloniex.com");
     }
 
@@ -62,14 +63,14 @@ public class PoloniexRateSource implements IRateSource{
     @Override
     public Set<String> getCryptoCurrencies() {
         Set<String> result = new HashSet<String>();
-        result.add(ICurrencies.NXT);
+        result.add(Currencies.NXT);
         return result;
     }
 
 
     @Override
     public BigDecimal getExchangeRateLast(String cryptoCurrency, String fiatCurrency) {
-        if (!ICurrencies.NXT.equalsIgnoreCase(cryptoCurrency)) {
+        if (!Currencies.NXT.equalsIgnoreCase(cryptoCurrency)) {
             return null;
         }
         String key = cryptoCurrency +"_" + fiatCurrency;
@@ -100,7 +101,7 @@ public class PoloniexRateSource implements IRateSource{
     }
 
     private BigDecimal getExchangeRateLastSync(String cryptoCurrency, String fiatCurrency) {
-        if (!ICurrencies.NXT.equalsIgnoreCase(cryptoCurrency)) {
+        if (!Currencies.NXT.equalsIgnoreCase(cryptoCurrency)) {
             return null; //unsupported currency
         }
         OrderBookResponse orderBookResponse = api.returnOrderBook("returnOrderBook", "BTC_NXT", 10000);
@@ -122,7 +123,7 @@ public class PoloniexRateSource implements IRateSource{
 
 //            System.out.println("tradableLimit = " + tradableLimit);;
             if (tradableLimit != null) {
-                BigDecimal btcRate = btcRs.getExchangeRateLast(ICurrencies.BTC, fiatCurrency);
+                BigDecimal btcRate = btcRs.getExchangeRateLast(Currencies.BTC, fiatCurrency);
                 if (btcRate != null) {
                     return btcRate.multiply(tradableLimit);
                 }
@@ -131,5 +132,10 @@ public class PoloniexRateSource implements IRateSource{
         }
 
         return null;
+    }
+
+    public static void main(String[] args) {
+        PoloniexRateSource rs = new PoloniexRateSource(Currencies.USD);
+        System.out.println("rs = " + rs.getExchangeRateLast(Currencies.NXT,Currencies.USD));
     }
 }

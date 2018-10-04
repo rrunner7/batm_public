@@ -22,25 +22,15 @@ import com.generalbytes.batm.server.extensions.extra.dogecoin.sources.FixPriceRa
 import com.generalbytes.batm.server.extensions.extra.dogecoin.sources.chainso.ChainSoRateSource;
 import com.generalbytes.batm.server.extensions.extra.dogecoin.wallets.blockio.BlockIOWallet;
 import com.generalbytes.batm.server.extensions.extra.dogecoin.wallets.dogecoind.DogecoindRPCWallet;
-import com.generalbytes.batm.server.extensions.watchlist.IWatchList;
 
 import java.math.BigDecimal;
 import java.util.*;
 
-public class DogecoinExtension implements IExtension{
+public class DogecoinExtension extends AbstractExtension{
+
     @Override
     public String getName() {
         return "BATM Dogecoin extra extension";
-    }
-
-    @Override
-    public IExchange createExchange(String exchangeLogin) {
-        return null;
-    }
-
-    @Override
-    public IPaymentProcessor createPaymentProcessor(String paymentProcessorLogin) {
-        return null; //no payment processors available
     }
 
     @Override
@@ -84,14 +74,9 @@ public class DogecoinExtension implements IExtension{
 
     @Override
     public ICryptoAddressValidator createAddressValidator(String cryptoCurrency) {
-        if (ICurrencies.DOGE.equalsIgnoreCase(cryptoCurrency)) {
+        if (Currencies.DOGE.equalsIgnoreCase(cryptoCurrency)) {
             return new DogecoinAddressValidator();
         }
-        return null;
-    }
-
-    @Override
-    public IPaperWalletGenerator createPaperWalletGenerator(String cryptoCurrency) {
         return null;
     }
 
@@ -111,9 +96,9 @@ public class DogecoinExtension implements IExtension{
                     } catch (Throwable e) {
                     }
                 }
-                String preferedFiatCurrency = ICurrencies.USD;
+                String preferedFiatCurrency = Currencies.USD;
                 if (st.hasMoreTokens()) {
-                    preferedFiatCurrency = st.nextToken();
+                    preferedFiatCurrency = st.nextToken().toUpperCase();
                 }
                 return new FixPriceRateSource(rate,preferedFiatCurrency);
             }
@@ -124,17 +109,8 @@ public class DogecoinExtension implements IExtension{
     @Override
     public Set<String> getSupportedCryptoCurrencies() {
         Set<String> result = new HashSet<String>();
-        result.add(ICurrencies.DOGE);
+        result.add(Currencies.DOGE);
         return result;
     }
 
-    @Override
-    public Set<String> getSupportedWatchListsNames() {
-        return null;
-    }
-
-    @Override
-    public IWatchList getWatchList(String name) {
-        return null;
-    }
 }

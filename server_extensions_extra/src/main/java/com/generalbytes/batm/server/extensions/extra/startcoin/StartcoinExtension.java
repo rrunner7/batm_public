@@ -20,22 +20,16 @@ package com.generalbytes.batm.server.extensions.extra.startcoin;
 import com.generalbytes.batm.server.extensions.*;
 import com.generalbytes.batm.server.extensions.extra.startcoin.sources.FixPriceRateSource;
 import com.generalbytes.batm.server.extensions.extra.startcoin.wallets.startcoind.StartcoindRPCWallet;
-import com.generalbytes.batm.server.extensions.watchlist.IWatchList;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-public class StartcoinExtension implements IExtension{
+public class StartcoinExtension extends AbstractExtension{
     @Override
     public String getName() {
         return "BATM Startcoin extension";
-    }
-
-    @Override
-    public IExchange createExchange(String exchangeLogin) {
-        return null;
     }
 
     @Override
@@ -69,14 +63,9 @@ public class StartcoinExtension implements IExtension{
 
     @Override
     public ICryptoAddressValidator createAddressValidator(String cryptoCurrency) {
-        if (ICurrencies.START.equalsIgnoreCase(cryptoCurrency)) {
+        if (Currencies.START.equalsIgnoreCase(cryptoCurrency)) {
             return new StartcoinAddressValidator();
         }
-        return null;
-    }
-
-    @Override
-    public IPaperWalletGenerator createPaperWalletGenerator(String cryptoCurrency) {
         return null;
     }
 
@@ -94,9 +83,9 @@ public class StartcoinExtension implements IExtension{
                     } catch (Throwable e) {
                     }
                 }
-                String preferedFiatCurrency = ICurrencies.USD;
+                String preferedFiatCurrency = Currencies.USD;
                 if (st.hasMoreTokens()) {
-                    preferedFiatCurrency = st.nextToken();
+                    preferedFiatCurrency = st.nextToken().toUpperCase();
                 }
                 return new FixPriceRateSource(rate,preferedFiatCurrency);
             }
@@ -106,24 +95,9 @@ public class StartcoinExtension implements IExtension{
     }
 
     @Override
-    public IPaymentProcessor createPaymentProcessor(String paymentProcessorLogin) {
-        return null; //no payment processors available
-    }
-
-    @Override
     public Set<String> getSupportedCryptoCurrencies() {
         Set<String> result = new HashSet<String>();
-        result.add(ICurrencies.START);
+        result.add(Currencies.START);
         return result;
-    }
-
-    @Override
-    public Set<String> getSupportedWatchListsNames() {
-        return null;
-    }
-
-    @Override
-    public IWatchList getWatchList(String name) {
-        return null;
     }
 }

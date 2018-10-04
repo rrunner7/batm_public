@@ -21,22 +21,16 @@ import com.generalbytes.batm.server.extensions.*;
 import com.generalbytes.batm.server.extensions.extra.groestlcoin.sources.FixPriceRateSource;
 import com.generalbytes.batm.server.extensions.extra.groestlcoin.sources.GroestlcoinTickerRateSource;
 import com.generalbytes.batm.server.extensions.extra.groestlcoin.wallets.groestlcoind.GroestlcoindRPCWallet;
-import com.generalbytes.batm.server.extensions.watchlist.IWatchList;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-public class GroestlcoinExtension implements IExtension{
+public class GroestlcoinExtension extends AbstractExtension{
     @Override
     public String getName() {
         return "BATM Groestlcoin extension";
-    }
-
-    @Override
-    public IExchange createExchange(String exchangeLogin) {
-        return null;
     }
 
     @Override
@@ -70,14 +64,9 @@ public class GroestlcoinExtension implements IExtension{
 
     @Override
     public ICryptoAddressValidator createAddressValidator(String cryptoCurrency) {
-        if (ICurrencies.GRS.equalsIgnoreCase(cryptoCurrency)) {
+        if (Currencies.GRS.equalsIgnoreCase(cryptoCurrency)) {
             return new GroestlcoinAddressValidator();
         }
-        return null;
-    }
-
-    @Override
-    public IPaperWalletGenerator createPaperWalletGenerator(String cryptoCurrency) {
         return null;
     }
 
@@ -95,41 +84,22 @@ public class GroestlcoinExtension implements IExtension{
                     } catch (Throwable e) {
                     }
                 }
-                String preferedFiatCurrency = ICurrencies.USD;
+                String preferedFiatCurrency = Currencies.USD;
                 if (st.hasMoreTokens()) {
-                    preferedFiatCurrency = st.nextToken();
+                    preferedFiatCurrency = st.nextToken().toUpperCase();
                 }
                 return new FixPriceRateSource(rate,preferedFiatCurrency);
             }else if ("groestlcoincom".equalsIgnoreCase(prefix)) {
                 return new GroestlcoinTickerRateSource();
             }
-
-
-
-
         }
         return null;
     }
 
     @Override
-    public IPaymentProcessor createPaymentProcessor(String paymentProcessorLogin) {
-        return null; //no payment processors available
-    }
-
-    @Override
     public Set<String> getSupportedCryptoCurrencies() {
         Set<String> result = new HashSet<String>();
-        result.add(ICurrencies.GRS);
+        result.add(Currencies.GRS);
         return result;
-    }
-
-    @Override
-    public Set<String> getSupportedWatchListsNames() {
-        return null;
-    }
-
-    @Override
-    public IWatchList getWatchList(String name) {
-        return null;
     }
 }

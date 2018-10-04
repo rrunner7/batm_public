@@ -1,10 +1,8 @@
 package com.generalbytes.batm.server.extensions.extra.nubits;
 
 import com.generalbytes.batm.server.extensions.*;
-import com.generalbytes.batm.server.extensions.extra.nubits.NubitsAddressValidator;
 import com.generalbytes.batm.server.extensions.extra.nubits.sources.FixPriceRateSource;
 import com.generalbytes.batm.server.extensions.extra.nubits.wallets.nud.NubitsRPCWallet;
-import com.generalbytes.batm.server.extensions.watchlist.IWatchList;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -14,12 +12,9 @@ import java.util.StringTokenizer;
 /**
  * Created by woolly_sammoth on 11/12/14.
  */
-public class NubitsExtension implements IExtension{
+public class NubitsExtension extends AbstractExtension{
     @Override
     public String getName() { return "BATM NuBits extension"; }
-
-    @Override
-    public IExchange createExchange(String exchangeLogin) { return null; }
 
     @Override
     public IWallet createWallet(String walletLogin) {
@@ -52,14 +47,9 @@ public class NubitsExtension implements IExtension{
 
     @Override
     public ICryptoAddressValidator createAddressValidator(String cryptoCurrency) {
-        if (ICurrencies.NBT.equalsIgnoreCase(cryptoCurrency)) {
+        if (Currencies.NBT.equalsIgnoreCase(cryptoCurrency)) {
             return new NubitsAddressValidator();
         }
-        return null;
-    }
-
-    @Override
-    public IPaperWalletGenerator createPaperWalletGenerator(String cryptoCurrency) {
         return null;
     }
 
@@ -77,9 +67,9 @@ public class NubitsExtension implements IExtension{
                     } catch (Throwable e) {
                     }
                 }
-                String preferedFiatCurrency = ICurrencies.USD;
+                String preferedFiatCurrency = Currencies.USD;
                 if (st.hasMoreTokens()) {
-                    preferedFiatCurrency = st.nextToken();
+                    preferedFiatCurrency = st.nextToken().toUpperCase();
                 }
                 return new FixPriceRateSource(rate,preferedFiatCurrency);
             }
@@ -89,24 +79,9 @@ public class NubitsExtension implements IExtension{
     }
 
     @Override
-    public IPaymentProcessor createPaymentProcessor(String paymentProcessorLogin) {
-        return null; //no payment processors available
-    }
-
-    @Override
     public Set<String> getSupportedCryptoCurrencies() {
         Set<String> result = new HashSet<String>();
-        result.add(ICurrencies.NBT);
+        result.add(Currencies.NBT);
         return result;
-    }
-
-    @Override
-    public Set<String> getSupportedWatchListsNames() {
-        return null;
-    }
-
-    @Override
-    public IWatchList getWatchList(String name) {
-        return null;
     }
 }

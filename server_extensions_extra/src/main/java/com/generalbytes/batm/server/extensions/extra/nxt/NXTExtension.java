@@ -22,19 +22,15 @@ import com.generalbytes.batm.server.extensions.*;
 import com.generalbytes.batm.server.extensions.extra.nxt.sources.FixPriceRateSource;
 import com.generalbytes.batm.server.extensions.extra.nxt.sources.poloniex.PoloniexRateSource;
 import com.generalbytes.batm.server.extensions.extra.nxt.wallets.mynxt.MynxtWallet;
-import com.generalbytes.batm.server.extensions.watchlist.IWatchList;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-public class NXTExtension implements IExtension{
+public class NXTExtension extends AbstractExtension{
     @Override
     public String getName() { return "BATM NXT extension"; }
-
-    @Override
-    public IExchange createExchange(String exchangeLogin) { return null; }
 
     @Override
     public IWallet createWallet(String walletLogin) {
@@ -64,14 +60,9 @@ public class NXTExtension implements IExtension{
 
     @Override
     public ICryptoAddressValidator createAddressValidator(String cryptoCurrency) {
-        if (ICurrencies.NXT.equalsIgnoreCase(cryptoCurrency)) {
+        if (Currencies.NXT.equalsIgnoreCase(cryptoCurrency)) {
             return new NXTAddressValidator();
         }
-        return null;
-    }
-
-    @Override
-    public IPaperWalletGenerator createPaperWalletGenerator(String cryptoCurrency) {
         return null;
     }
 
@@ -89,13 +80,13 @@ public class NXTExtension implements IExtension{
                     } catch (Throwable e) {
                     }
                 }
-                String preferedFiatCurrency = ICurrencies.USD;
+                String preferedFiatCurrency = Currencies.USD;
                 if (st.hasMoreTokens()) {
-                    preferedFiatCurrency = st.nextToken();
+                    preferedFiatCurrency = st.nextToken().toUpperCase();
                 }
                 return new FixPriceRateSource(rate,preferedFiatCurrency);
             }else if ("poloniexrs".equalsIgnoreCase(rsType)) {
-                String preferredFiatCurrency = ICurrencies.USD;
+                String preferredFiatCurrency = Currencies.USD;
                 if (st.hasMoreTokens()) {
                     preferredFiatCurrency = st.nextToken();
                 }
@@ -107,24 +98,9 @@ public class NXTExtension implements IExtension{
     }
 
     @Override
-    public IPaymentProcessor createPaymentProcessor(String paymentProcessorLogin) {
-        return null; //no payment processors available
-    }
-
-    @Override
     public Set<String> getSupportedCryptoCurrencies() {
         Set<String> result = new HashSet<String>();
-        result.add(ICurrencies.NXT);
+        result.add(Currencies.NXT);
         return result;
-    }
-
-    @Override
-    public Set<String> getSupportedWatchListsNames() {
-        return null;
-    }
-
-    @Override
-    public IWatchList getWatchList(String name) {
-        return null;
     }
 }

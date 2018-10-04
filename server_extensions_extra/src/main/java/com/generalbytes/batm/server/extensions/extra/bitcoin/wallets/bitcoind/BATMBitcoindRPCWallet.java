@@ -19,7 +19,7 @@ package com.generalbytes.batm.server.extensions.extra.bitcoin.wallets.bitcoind;
 
 import com.azazar.bitcoin.jsonrpcclient.BitcoinException;
 import com.azazar.bitcoin.jsonrpcclient.BitcoinJSONRPCClient;
-import com.generalbytes.batm.server.extensions.ICurrencies;
+import com.generalbytes.batm.server.extensions.Currencies;
 import com.generalbytes.batm.server.extensions.IWallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,33 +37,33 @@ import java.util.Set;
 
 public class BATMBitcoindRPCWallet implements IWallet{
     private static final Logger log = LoggerFactory.getLogger(BATMBitcoindRPCWallet.class);
-    private static final String CRYPTO_CURRENCY = ICurrencies.BTC;
+    private String cryptoCurrency = Currencies.BTC;
 
     private String accountName;
     private BitcoinJSONRPCClient client;
 
 
-    public BATMBitcoindRPCWallet(String rpcURL, String accountName) {
+    public BATMBitcoindRPCWallet(String rpcURL, String accountName, String cryptoCurrency) {
         this.accountName = accountName;
+        this.cryptoCurrency = cryptoCurrency;
         client = createClient(rpcURL);
     }
 
     @Override
     public Set<String> getCryptoCurrencies() {
         Set<String> result = new HashSet<String>();
-        result.add(CRYPTO_CURRENCY);
+        result.add(cryptoCurrency);
         return result;
-
     }
 
     @Override
     public String getPreferredCryptoCurrency() {
-        return CRYPTO_CURRENCY;
+        return cryptoCurrency;
     }
 
     @Override
     public String sendCoins(String destinationAddress, BigDecimal amount, String cryptoCurrency, String description) {
-        if (!CRYPTO_CURRENCY.equalsIgnoreCase(cryptoCurrency)) {
+        if (!this.cryptoCurrency.equalsIgnoreCase(cryptoCurrency)) {
             log.error("Bitcoind wallet error: unknown cryptocurrency.");
             return null;
         }
@@ -81,7 +81,7 @@ public class BATMBitcoindRPCWallet implements IWallet{
 
     @Override
     public String getCryptoAddress(String cryptoCurrency) {
-        if (!CRYPTO_CURRENCY.equalsIgnoreCase(cryptoCurrency)) {
+        if (!this.cryptoCurrency.equalsIgnoreCase(cryptoCurrency)) {
             log.error("Bitcoind wallet error: unknown cryptocurrency.");
             return null;
         }
@@ -101,13 +101,13 @@ public class BATMBitcoindRPCWallet implements IWallet{
 
     @Override
     public BigDecimal getCryptoBalance(String cryptoCurrency) {
-        if (!CRYPTO_CURRENCY.equalsIgnoreCase(cryptoCurrency)) {
+        if (!this.cryptoCurrency.equalsIgnoreCase(cryptoCurrency)) {
             log.error("Bitcoind wallet error: unknown cryptocurrency: " + cryptoCurrency);
             return null;
         }
         try {
             double balance = client.getBalance(accountName);
-            return new BigDecimal(balance);
+            return BigDecimal.valueOf(balance);
         } catch (BitcoinException e) {
             e.printStackTrace();
             return null;

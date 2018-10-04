@@ -19,29 +19,17 @@ package com.generalbytes.batm.server.extensions.extra.dash;
 
 import com.generalbytes.batm.server.extensions.*;
 import com.generalbytes.batm.server.extensions.extra.dash.sources.FixPriceRateSource;
-//import com.generalbytes.batm.server.extensions.extra.dogecoin.sources.chainso.ChainSoRateSource;
-//import com.generalbytes.batm.server.extensions.extra.dogecoin.wallets.blockio.BlockIOWallet;
 import com.generalbytes.batm.server.extensions.extra.dash.sources.cddash.CryptodiggersRateSource;
+import com.generalbytes.batm.server.extensions.extra.dash.sources.coinmarketcap.CoinmarketcapRateSource;
 import com.generalbytes.batm.server.extensions.extra.dash.wallets.dashd.DashRPCWallet;
-import com.generalbytes.batm.server.extensions.watchlist.IWatchList;
 
 import java.math.BigDecimal;
 import java.util.*;
 
-public class DashExtension implements IExtension{
+public class DashExtension extends AbstractExtension{
     @Override
     public String getName() {
         return "BATM Dash extra extension";
-    }
-
-    @Override
-    public IExchange createExchange(String exchangeLogin) {
-        return null;
-    }
-
-    @Override
-    public IPaymentProcessor createPaymentProcessor(String paymentProcessorLogin) {
-        return null; //no payment processors available
     }
 
     @Override
@@ -76,29 +64,23 @@ public class DashExtension implements IExtension{
 
     @Override
     public ICryptoAddressValidator createAddressValidator(String cryptoCurrency) {
-        if (ICurrencies.DASH.equalsIgnoreCase(cryptoCurrency)) {
+        if (Currencies.DASH.equalsIgnoreCase(cryptoCurrency)) {
             return new DashAddressValidator();
         }
         return null;
     }
 
     @Override
-    public IPaperWalletGenerator createPaperWalletGenerator(String cryptoCurrency) {
-        return null;
-    }
-
-    @Override
     public IRateSource createRateSource(String sourceLogin) {
         if (sourceLogin != null && !sourceLogin.trim().isEmpty()) {
-            StringTokenizer st = new StringTokenizer(sourceLogin,":");
+            StringTokenizer st = new StringTokenizer(sourceLogin, ":");
             String exchangeType = st.nextToken();
-	    if ("cddash".equalsIgnoreCase(exchangeType)) {
+            if ("cddash".equalsIgnoreCase(exchangeType)) {
                 if (st.hasMoreTokens()) {
-                    return new CryptodiggersRateSource(st.nextToken());
+                    return new CryptodiggersRateSource(st.nextToken().toUpperCase());
                 }
-                return new CryptodiggersRateSource(ICurrencies.USD);
-	    }
-            else if ("dashfix".equalsIgnoreCase(exchangeType)) {
+                return new CryptodiggersRateSource(Currencies.USD);
+            } else if ("dashfix".equalsIgnoreCase(exchangeType)) {
                 BigDecimal rate = BigDecimal.ZERO;
                 if (st.hasMoreTokens()) {
                     try {
@@ -106,11 +88,17 @@ public class DashExtension implements IExtension{
                     } catch (Throwable e) {
                     }
                 }
-                String preferedFiatCurrency = ICurrencies.USD;
+                String preferedFiatCurrency = Currencies.USD;
                 if (st.hasMoreTokens()) {
-                    preferedFiatCurrency = st.nextToken();
+                    preferedFiatCurrency = st.nextToken().toUpperCase();
                 }
-                return new FixPriceRateSource(rate,preferedFiatCurrency);
+                return new FixPriceRateSource(rate, preferedFiatCurrency);
+            } else if ("coinmarketcap".equalsIgnoreCase(exchangeType)) {
+                String preferedFiatCurrency = Currencies.USD;
+                if (st.hasMoreTokens()) {
+                    preferedFiatCurrency = st.nextToken().toUpperCase();
+                }
+                return new CoinmarketcapRateSource(preferedFiatCurrency);
             }
         }
         return null;
@@ -119,17 +107,13 @@ public class DashExtension implements IExtension{
     @Override
     public Set<String> getSupportedCryptoCurrencies() {
         Set<String> result = new HashSet<String>();
-        result.add(ICurrencies.DASH);
+        result.add(Currencies.BTC);
+        result.add(Currencies.BTX);
+        result.add(Currencies.BCH);
+        result.add(Currencies.LTC);
+        result.add(Currencies.XMR);
+        result.add(Currencies.DASH);
+        result.add(Currencies.POT);
         return result;
-    }
-
-    @Override
-    public Set<String> getSupportedWatchListsNames() {
-        return null;
-    }
-
-    @Override
-    public IWatchList getWatchList(String name) {
-        return null;
     }
 }

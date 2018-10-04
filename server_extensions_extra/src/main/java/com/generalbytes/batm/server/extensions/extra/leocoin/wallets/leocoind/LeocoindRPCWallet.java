@@ -19,7 +19,7 @@ package com.generalbytes.batm.server.extensions.extra.leocoin.wallets.leocoind;
 
 import com.azazar.bitcoin.jsonrpcclient.BitcoinException;
 import com.azazar.bitcoin.jsonrpcclient.BitcoinJSONRPCClient;
-import com.generalbytes.batm.server.extensions.ICurrencies;
+import com.generalbytes.batm.server.extensions.Currencies;
 import com.generalbytes.batm.server.extensions.IWallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ import java.util.Set;
 
 public class LeocoindRPCWallet implements IWallet{
     private static final Logger log = LoggerFactory.getLogger(LeocoindRPCWallet.class);
-    private static final String CRYPTO_CURRENCY = ICurrencies.LEO;
+    private static final String CRYPTO_CURRENCY = Currencies.LEO;
 
     public LeocoindRPCWallet(String rpcURL, String accountName) {
         this.rpcURL = rpcURL;
@@ -101,7 +101,7 @@ public class LeocoindRPCWallet implements IWallet{
         }
         try {
             double balance = getClient(rpcURL).getBalance(accountName);
-            return new BigDecimal(balance);
+            return BigDecimal.valueOf(balance);
         } catch (BitcoinException e) {
             e.printStackTrace();
             return null;

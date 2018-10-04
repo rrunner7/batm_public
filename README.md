@@ -1,7 +1,7 @@
 BATM Public Repository
 ===========
 
-This repository contains Bitcoin ATM related code used in BATMOne, BATMTwo and BATM Server products.
+This repository contains Bitcoin ATM related code used in BATMTwo, BATMThree, BATM Server products.
 
 More information about the products can be found here: http://www.generalbytes.com
 
@@ -21,33 +21,31 @@ Here is the list of functionality that can be extended with extenstions API:
 Content
 =======
 * **server_extensions_api** - contains extension api that all extensions use to extend BATM Server's functionality.
-* **server_extensions_extra** - reference extension implementation that implements BTC, LTC, DOGE, NLG, ICG, NBT, GRS and MAX coin support functionality.
+* **server_extensions_extra** - reference extension implementation that implements BTC, LTC, DGB, DASH, POT, VIA, BTX, SYS, FLASH, DOGE, NLG, ICG, NBT, GRS, MAX, BSD, MEC, BTDX, SUM, BURST, ECA, LINDA and $PAC coin support functionality.
 * **server_extensions_test** - contains tester for testing the extensions without requirement of having a BATM server
-
-Build information
-=================
-```bash
-cd server_extensions_api
-ant
-cd ..
-cd server_extensions_extra
-ant
-cd ..
-cp server_extensions_extra/dist/batm_server_extensions_extra.jar /batm/app/master/extensions/
-```
 
 Note for developers
 ==========
+
+Requirements:
+* Linux is required in order to run compilers and tests.
+* Java
+* Gradle
+
 When you implement support for new crypto-coin add it please to **server_extensions_extra** this way it will get into default BATM Server installation pack for customers.
 
 After you implement the the extension make sure you test it with Tester which you will find in **server_extensions_test**
 
+Build information
+=================
+```bash
+./gradlew build
+cp server_extensions_extra/build/libs/batm_server_extensions_extra.jar /batm/app/master/extensions/
+```
+
 How to run Tester
 ==========
 ```bash
-cd server_extensions_test
-ant
-cd dist
-./tester.sh -j ../../server_extensions_extra/dist/batm_server_extensions_extra.jar 
+./gradlew :server_extensions_test:install
+./server_extensions_test/build/install/server_extensions_test/bin/server_extensions_test
 ```
-

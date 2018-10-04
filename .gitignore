@@ -2,9 +2,14 @@
 .DS_Store
 dist/
 build/
+out/
 .idea
 .gradle
-.iml
+*.iml
 target
 install-libs.sh
 .mvn-repo
+..gitignore.swp
+.project
+.classpath
+.settings/

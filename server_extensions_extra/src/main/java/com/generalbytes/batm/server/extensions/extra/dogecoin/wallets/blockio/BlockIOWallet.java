@@ -1,6 +1,7 @@
 package com.generalbytes.batm.server.extensions.extra.dogecoin.wallets.blockio;
 
-import com.generalbytes.batm.server.extensions.ICurrencies;
+import com.generalbytes.batm.server.extensions.Currencies;
+import com.generalbytes.batm.server.extensions.Currencies;
 import com.generalbytes.batm.server.extensions.IWallet;
 
 import si.mazi.rescu.RestProxyFactory;
@@ -44,20 +45,20 @@ public class BlockIOWallet implements IWallet {
     @Override
     public Set<String> getCryptoCurrencies() {
         Set<String> result = new HashSet<String>();
-        result.add(ICurrencies.BTC);
-        result.add(ICurrencies.LTC);
-        result.add(ICurrencies.DOGE);
+        result.add(Currencies.BTC);
+        result.add(Currencies.LTC);
+        result.add(Currencies.DOGE);
         return result;
     }
 
     @Override
     public String getPreferredCryptoCurrency() {
-        return ICurrencies.DOGE;
+        return Currencies.BTC;
     }
 
     @Override
     public String getCryptoAddress(String cryptoCurrency) {
-        if (!(cryptoCurrency.equalsIgnoreCase(ICurrencies.DOGE) || cryptoCurrency.equalsIgnoreCase(ICurrencies.BTC) || cryptoCurrency.equalsIgnoreCase(ICurrencies.LTC))) {
+        if (!getCryptoCurrencies().contains(cryptoCurrency)) {
             return null;
         }
         try {
@@ -75,7 +76,7 @@ public class BlockIOWallet implements IWallet {
 
     @Override
     public BigDecimal getCryptoBalance(String cryptoCurrency) {
-        if (!(cryptoCurrency.equalsIgnoreCase(ICurrencies.DOGE) || cryptoCurrency.equalsIgnoreCase(ICurrencies.BTC) || cryptoCurrency.equalsIgnoreCase(ICurrencies.LTC))) {
+        if (!getCryptoCurrencies().contains(cryptoCurrency)) {
             return null;
         }
         try {
@@ -92,7 +93,7 @@ public class BlockIOWallet implements IWallet {
 
     @Override
     public String sendCoins(String destinationAddress, BigDecimal amount, String cryptoCurrency, String description) {
-        if (!(cryptoCurrency.equalsIgnoreCase(ICurrencies.DOGE) || cryptoCurrency.equalsIgnoreCase(ICurrencies.BTC) || cryptoCurrency.equalsIgnoreCase(ICurrencies.LTC))) {
+        if (!getCryptoCurrencies().contains(cryptoCurrency)) {
             return null;
         }
         try {
